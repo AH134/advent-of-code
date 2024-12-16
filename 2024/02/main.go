@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -36,51 +37,85 @@ func parseInput(filename string, reportsArr *[][]int) {
 
 }
 
-func absDiff(x, y int) int {
-	if x < y {
-		return y - x
+func safe(reportsList *[][]int) int {
+	count := 0
+	for _, report := range *reportsList {
+		diffs := make([]int, 0)
+		for i := 0; i < len(report)-1; i++ {
+			diffs = append(diffs, report[i]-report[i+1])
+		}
+
+		if allIncreasing(&diffs) || allDecreasing(&diffs) {
+			count++
+		}
 	}
 
-	return x - y
+	return count
 }
 
-// part one
-func getSafeReportsOne(reportsArr *[][]int) int {
-	var isIncreasing bool
-	totalSafeReports := 0
+func safePartTwo(reportsList *[][]int) int {
+	count := 0
+	for _, report := range *reportsList {
+		// loop through length of list with one element removed
+		// removed and see if it is safe
+		for i := 0; i < len(report); i++ {
+			reportCopy := make([]int, len(report))
+			copy(reportCopy, report)
+			reportCopy = append(reportCopy[:i], reportCopy[i+1:]...)
 
-	for _, row := range *reportsArr {
-		isSafe := true
-		isIncreasing = row[0] < row[1]
-		for j := range len(row) - 1 {
-			if row[j] < row[j+1] != isIncreasing {
-				isSafe = false
-				break
+			diffs := make([]int, 0)
+			for j := 0; j < len(reportCopy)-1; j++ {
+				diffs = append(diffs, reportCopy[j]-reportCopy[j+1])
 			}
-
-			diff := absDiff(row[j], row[j+1])
-			// fmt.Println("difference:", diff)
-			if diff < 1 || diff > 3 {
-				isSafe = false
+			if allIncreasing(&diffs) || allDecreasing(&diffs) {
+				count++
 				break
 			}
 		}
 
-		if isSafe {
-			totalSafeReports++
+	}
+
+	return count
+}
+
+func allIncreasing(diffList *[]int) bool {
+	for _, el := range *diffList {
+		if el < 1 || el > 3 {
+			return false
 		}
 	}
 
-	return totalSafeReports
+	return true
+}
 
+func allDecreasing(diffList *[]int) bool {
+	for _, el := range *diffList {
+		if el > -1 || el < -3 {
+			return false
+		}
+	}
+
+	return true
 }
 
 func main() {
-	// every row is a single report
-	// reports contain multiple numbers
-	reports := make([][]int, 0)
-	parseInput("./input.txt", &reports)
+	filePtr := flag.String("file", "foo", "a string")
+	partPtr := flag.Int("part", 0, "a string")
+	flag.Parse()
 
-	totalSafeReports := getSafeReportsOne(&reports)
-	fmt.Println("Total Safe Reports:", totalSafeReports)
+	if *filePtr == "foo" {
+		log.Fatal("Must input a file")
+	}
+
+	reports := make([][]int, 0)
+	parseInput(*filePtr, &reports)
+
+	switch *partPtr {
+	case 1:
+		fmt.Println("Safe:", safe(&reports))
+	case 2:
+		fmt.Println("Safe:", safePartTwo(&reports))
+	case 0:
+		log.Fatal("Input part")
+	}
 }
