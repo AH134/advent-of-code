@@ -1,0 +1,2 @@
+solution yoinked from https://github.com/JoanaBLate/advent-of-code-js/blob/main/2024/day04-solve1.js
+Part 1: 2642
